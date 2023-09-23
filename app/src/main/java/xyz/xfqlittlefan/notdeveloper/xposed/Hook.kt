@@ -16,6 +16,8 @@ import xyz.xfqlittlefan.notdeveloper.DEVELOPMENT_SETTINGS_ENABLED
 @Keep
 class Hook : IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
+        hideSystemProps(lpparam)
+        
         if (lpparam.packageName.startsWith("android") || lpparam.packageName.startsWith(
                 "com.android"
             )
