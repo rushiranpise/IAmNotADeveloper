@@ -6,7 +6,6 @@ import androidx.annotation.Keep
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XSharedPreferences
-import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
@@ -158,7 +157,7 @@ class Hook : IXposedHookLoadPackage {
     }
 
     // Define the hideSystemProps function
-    fun hideSystemProps(lpparam: LoadPackageParam) {
+    fun hideSystemProps(lpparam: XC_LoadPackage.LoadPackageParam) {
         XposedBridge.log("LOAD " + lpparam.packageName)
 
         val clazz = XposedHelpers.findClassIfExists(
