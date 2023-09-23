@@ -12,6 +12,7 @@ import xyz.xfqlittlefan.notdeveloper.ADB_ENABLED
 import xyz.xfqlittlefan.notdeveloper.ADB_WIFI_ENABLED
 import xyz.xfqlittlefan.notdeveloper.BuildConfig
 import xyz.xfqlittlefan.notdeveloper.DEVELOPMENT_SETTINGS_ENABLED
+import de.robv.android.xposed.XposedBridge
 
 @Keep
 class Hook : IXposedHookLoadPackage {
@@ -152,5 +153,53 @@ class Hook : IXposedHookLoadPackage {
                     }
                 }
             })
+    }
+    fun hideSystemProps(lpparam: LoadPackageParam) {
+        XposedBridge.log("LOAD " + lpparam.packageName)
+
+        val clazz = XposedHelpers.findClassIfExists(
+            "android.os.SystemProperties", lpparam.classLoader)
+
+        XposedBridge.log("CLASS " + clazz?.name)
+
+        if (clazz != null) {
+            val ffsReady = "sys.usb.ffs.ready";
+            val usbState = "sys.usb.state";
+            val usbConfig = "sys.usb.config";
+            val rebootFunc = "persist.sys.usb.reboot.func";
+            val methodGet = "get"
+            val methodGetBoolean = "getBoolean"
+            val methodGetInt = "getInt"
+            val methodGetLong = "getLong"
+            val overrideAdb = "mtp"
+
+            listOf(methodGet, methodGetBoolean, methodGetInt, methodGetLong).forEach {
+                XposedBridge.hookAllMethods(clazz, it,
+                    object : XC_MethodHook() {
+                        override fun afterHookedMethod(param: MethodHookParam?) {
+                            XposedBridge.log(
+                                "ACCESS " + param!!.method.name + " PARAM " + param.args[0])
+
+                            if (param.args[0] != ffsReady && param.method.name != methodGet) {
+                                return
+                            }
+
+                            when(param.args[0]) {
+                                ffsReady -> {
+                                    when(param.method.name) {
+                                        methodGet -> param.result = "0"
+                                        methodGetBoolean -> param.result = false
+                                        methodGetInt -> param.result = 0
+                                        methodGetLong -> param.result = 0L
+                                    }
+                                }
+                                usbState -> param.result = overrideAdb
+                                usbConfig -> param.result = overrideAdb
+                                rebootFunc -> param.result = overrideAdb
+                            }
+                        }
+                    })
+            }
+        }
     }
 }
