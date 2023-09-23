@@ -3,7 +3,7 @@ name: Building Release
 on:
   push:
     branches:
-      - master
+      - dev2
   pull_request:
 
 jobs:
