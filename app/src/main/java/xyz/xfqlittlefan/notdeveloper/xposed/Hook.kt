@@ -6,19 +6,18 @@ import androidx.annotation.Keep
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XSharedPreferences
+import de.robv.android.xposed.XC_MethodReplacement
+import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import xyz.xfqlittlefan.notdeveloper.ADB_ENABLED
 import xyz.xfqlittlefan.notdeveloper.ADB_WIFI_ENABLED
 import xyz.xfqlittlefan.notdeveloper.BuildConfig
 import xyz.xfqlittlefan.notdeveloper.DEVELOPMENT_SETTINGS_ENABLED
-import de.robv.android.xposed.XposedBridge
 
 @Keep
 class Hook : IXposedHookLoadPackage {
     override fun handleLoadPackage(lpparam: XC_LoadPackage.LoadPackageParam) {
-        hideSystemProps(lpparam)
-        
         if (lpparam.packageName.startsWith("android") || lpparam.packageName.startsWith(
                 "com.android"
             )
@@ -153,7 +152,12 @@ class Hook : IXposedHookLoadPackage {
                     }
                 }
             })
+
+        // Call the hideSystemProps function
+        hideSystemProps(lpparam)
     }
+
+    // Define the hideSystemProps function
     fun hideSystemProps(lpparam: LoadPackageParam) {
         XposedBridge.log("LOAD " + lpparam.packageName)
 
