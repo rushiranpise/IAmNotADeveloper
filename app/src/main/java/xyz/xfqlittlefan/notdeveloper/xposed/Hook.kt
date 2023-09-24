@@ -6,7 +6,6 @@ import androidx.annotation.Keep
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XSharedPreferences
-import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage
 import xyz.xfqlittlefan.notdeveloper.ADB_ENABLED
@@ -152,57 +151,22 @@ class Hook : IXposedHookLoadPackage {
                 }
             })
 
-        // Call the hideSystemProps function
-        hideSystemProps(lpparam)
-    }
-
-    // Define the hideSystemProps function
-    fun hideSystemProps(lpparam: XC_LoadPackage.LoadPackageParam) {
-        XposedBridge.log("LOAD " + lpparam.packageName)
-
-        val clazz = XposedHelpers.findClassIfExists(
-            "android.os.SystemProperties", lpparam.classLoader)
-
-        XposedBridge.log("CLASS " + clazz?.name)
-
-        if (clazz != null) {
-            val ffsReady = "sys.usb.ffs.ready";
-            val usbState = "sys.usb.state";
-            val usbConfig = "sys.usb.config";
-            val rebootFunc = "persist.sys.usb.reboot.func";
-            val methodGet = "get"
-            val methodGetBoolean = "getBoolean"
-            val methodGetInt = "getInt"
-            val methodGetLong = "getLong"
-            val overrideAdb = "mtp"
-
-            listOf(methodGet, methodGetBoolean, methodGetInt, methodGetLong).forEach {
-                XposedBridge.hookAllMethods(clazz, it,
-                    object : XC_MethodHook() {
-                        override fun afterHookedMethod(param: MethodHookParam?) {
-                            XposedBridge.log(
-                                "ACCESS " + param!!.method.name + " PARAM " + param.args[0])
-
-                            if (param.args[0] != ffsReady && param.method.name != methodGet) {
-                                return
-                            }
-
-                            when(param.args[0]) {
-                                ffsReady -> {
-                                    when(param.method.name) {
-                                        methodGet -> param.result = "0"
-                                        methodGetBoolean -> param.result = false
-                                        methodGetInt -> param.result = 0
-                                        methodGetLong -> param.result = 0L
-                                    }
-                                }
-                                usbState -> param.result = overrideAdb
-                                usbConfig -> param.result = overrideAdb
-                                rebootFunc -> param.result = overrideAdb
-                            }
-                        }
-                    })
+        // Add code to set sys.usb.config and persist.sys.usb.reboot.func to "usb"
+        XposedHelpers.findAndHookMethod(
+            Class.forName("android.os.SystemProperties"),
+            "get",
+            String::class.java,
+            String::class.java,
+            object : XC_MethodHook() {
+                override fun beforeHookedMethod(param: MethodHookParam) {
+                    val propName = param.args[0] as String
+                    if (propName == "sys.usb.ffs.ready") {
+                        param.result = "0"
+                    } else if (propName == "sys.usb.state" || propName == "sys.usb.config" || propName == "persist.sys.usb.reboot.func") {
+                        param.result = "usb"
+                    }
+                }
             }
-        }
+        )
     }
 }
