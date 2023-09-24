@@ -12,6 +12,9 @@ import xyz.xfqlittlefan.notdeveloper.ADB_ENABLED
 import xyz.xfqlittlefan.notdeveloper.ADB_WIFI_ENABLED
 import xyz.xfqlittlefan.notdeveloper.BuildConfig
 import xyz.xfqlittlefan.notdeveloper.DEVELOPMENT_SETTINGS_ENABLED
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
 
 @Keep
 class Hook : IXposedHookLoadPackage {
@@ -166,6 +169,7 @@ class Hook : IXposedHookLoadPackage {
                         param.result = "usb"
                     }
                 }
+
                 override fun afterHookedMethod(param: MethodHookParam) {
                     val propName = param.args[0] as String
                     val propValue = param.result as String
