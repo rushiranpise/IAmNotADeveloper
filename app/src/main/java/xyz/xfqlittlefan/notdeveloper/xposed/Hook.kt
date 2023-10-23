@@ -97,9 +97,7 @@ class Hook : IXposedHookLoadPackage {
             oldApiCallback,
         )
 
-        if (prefs.getBoolean(DEVELOPMENT_SETTINGS_ENABLED, true)) {
             hideSystemProps(lpparam)
-        }
     }
 
     private fun hideSystemProps(lpparam: LoadPackageParam) {
