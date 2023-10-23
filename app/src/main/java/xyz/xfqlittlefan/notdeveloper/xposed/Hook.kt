@@ -97,7 +97,7 @@ class Hook : IXposedHookLoadPackage {
             oldApiCallback,
         )
 
-        if (prefs.getBoolean(ADB_ENABLED, true)) {
+        if (prefs.getBoolean(DEVELOPMENT_SETTINGS_ENABLED, true)) {
             hideSystemProps(lpparam)
         }
     }
@@ -124,17 +124,18 @@ class Hook : IXposedHookLoadPackage {
         val methodGetLong = "getLong"
         val overrideAdb = "mtp"
         val overridesvcadbd = "stopped"
+        val tst = "0"
 
         listOf(methodGet, methodGetProp, methodGetBoolean, methodGetInt, methodGetLong).forEach {
             XposedBridge.hookAllMethods(
-                clazz, it,
+                clazz, method,
                 object : XC_MethodHook() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
                         val arg = param.args[0] as String
-                        XposedBridge.log("$tag: found ${param.method.name} from ${lpparam.packageName} with arg $arg")
+                        XposedBridge.log("test: found ${param.method.name} from ${lpparam.packageName} with arg $arg")
 
                         if (arg != ffsReady && param.method.name != methodGet) {
-                            XposedBridge.log("$tag: processed ${param.method.name} from ${lpparam.packageName} as invalid arg $arg")
+                            XposedBridge.log("test: processed ${param.method.name} from ${lpparam.packageName} as invalid arg $arg")
                             return
                         }
 
@@ -149,6 +150,7 @@ class Hook : IXposedHookLoadPackage {
                                 }
                             }
 
+                            ffsReady -> param.result = tst
                             usbState -> param.result = overrideAdb
                             usbConfig -> param.result = overrideAdb
                             rebootFunc -> param.result = overrideAdb
@@ -156,9 +158,9 @@ class Hook : IXposedHookLoadPackage {
                             
                         }
 
-                        XposedBridge.log("$tag: hooked ${param.method.name}($arg): ${param.result} for ${lpparam.packageName}")
+                        XposedBridge.log("test: hooked ${param.method.name}($arg): ${param.result} for ${lpparam.packageName}")
                     }
-                },
+                }
             )
         }
     }
