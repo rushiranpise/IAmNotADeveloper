@@ -128,7 +128,7 @@ class Hook : IXposedHookLoadPackage {
 
         listOf(methodGet, methodGetProp, methodGetBoolean, methodGetInt, methodGetLong).forEach {
             XposedBridge.hookAllMethods(
-                clazz, method,
+                clazz, it,
                 object : XC_MethodHook() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
                         val arg = param.args[0] as String
