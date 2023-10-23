@@ -25,7 +25,7 @@ class Hook : IXposedHookLoadPackage {
             return
         }
 
-        Log.i(tag, "processing " + lpparam.packageName)
+       XposedBridge.log("$tag: processing " + lpparam.packageName)
 
         if (lpparam.packageName == BuildConfig.APPLICATION_ID) {
             XposedHelpers.findAndHookMethod(
@@ -131,10 +131,10 @@ class Hook : IXposedHookLoadPackage {
                 object : XC_MethodHook() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
                         val arg = param.args[0] as String
-                        XposedBridge.log("$tag: processing ${param.method.name} from ${lpparam.packageName} with arg $arg")
+                        XposedBridge.log("$tag: found ${param.method.name} from ${lpparam.packageName} with arg $arg")
 
                         if (arg != ffsReady && param.method.name != methodGet) {
-                            XposedBridge.log("$tag: processed ${param.method.name} from ${lpparam.packageName} receiving invalid arg $arg")
+                            XposedBridge.log("$tag: processed ${param.method.name} from ${lpparam.packageName} as invalid arg $arg")
                             return
                         }
 
@@ -170,7 +170,7 @@ class Hook : IXposedHookLoadPackage {
         vararg keys: String
     ) {
         val arg = param.args[1] as String
-        XposedBridge.log("$tag: processing ${param.method.name} from ${lpparam.packageName} with arg $arg")
+        XposedBridge.log("$tag: found ${param.method.name} from ${lpparam.packageName} with arg $arg")
 
         keys.forEach { key ->
             if (preferences.getBoolean(key, true) && arg == key) {
