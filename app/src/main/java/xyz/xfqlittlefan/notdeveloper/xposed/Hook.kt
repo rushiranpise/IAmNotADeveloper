@@ -4,6 +4,7 @@ import android.content.ContentResolver
 import android.provider.Settings
 import android.util.Log
 import androidx.annotation.Keep
+import android.os.SystemProperties;
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
