@@ -4,7 +4,6 @@ import android.content.ContentResolver
 import android.provider.Settings
 import android.util.Log
 import androidx.annotation.Keep
-import android.os.SystemProperties;
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodHook.MethodHookParam
@@ -26,7 +25,7 @@ class Hook : IXposedHookLoadPackage {
             return
         }
 
-       XposedBridge.log("$tag: processing " + lpparam.packageName)
+        Log.i(tag, "processing " + lpparam.packageName)
 
         if (lpparam.packageName == BuildConfig.APPLICATION_ID) {
             XposedHelpers.findAndHookMethod(
@@ -98,7 +97,9 @@ class Hook : IXposedHookLoadPackage {
             oldApiCallback,
         )
 
+        if (prefs.getBoolean(ADB_ENABLED, true)) {
             hideSystemProps(lpparam)
+        }
     }
 
     private fun hideSystemProps(lpparam: LoadPackageParam) {
@@ -107,7 +108,7 @@ class Hook : IXposedHookLoadPackage {
         )
 
         if (clazz == null) {
-            XposedBridge.log("$tag: cannot find SystemProperties class")
+            XposedBridge.log("$tag: props cannot find SystemProperties class")
             return
         }
 
@@ -123,7 +124,6 @@ class Hook : IXposedHookLoadPackage {
         val methodGetLong = "getLong"
         val overrideAdb = "mtp"
         val overridesvcadbd = "stopped"
-        val tst = "0"
 
         listOf(methodGet, methodGetProp, methodGetBoolean, methodGetInt, methodGetLong).forEach {
             XposedBridge.hookAllMethods(
@@ -131,10 +131,13 @@ class Hook : IXposedHookLoadPackage {
                 object : XC_MethodHook() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
                         val arg = param.args[0] as String
-                        XposedBridge.log("test: found ${param.method.name} from ${lpparam.packageName} with arg $arg")
+                        Log.i(
+                            tag,
+                            "processing ${param.method.name} from ${lpparam.packageName} with arg $arg"
+                        )
 
                         if (arg != ffsReady && param.method.name != methodGet) {
-                            XposedBridge.log("test: processed ${param.method.name} from ${lpparam.packageName} as invalid arg $arg")
+                            XposedBridge.log("$tag: props processed ${param.method.name} from ${lpparam.packageName} receiving invalid arg $arg")
                             return
                         }
 
@@ -149,7 +152,6 @@ class Hook : IXposedHookLoadPackage {
                                 }
                             }
 
-                            ffsReady -> param.result = tst
                             usbState -> param.result = overrideAdb
                             usbConfig -> param.result = overrideAdb
                             rebootFunc -> param.result = overrideAdb
@@ -157,7 +159,7 @@ class Hook : IXposedHookLoadPackage {
                             
                         }
 
-                        XposedBridge.log("test: hooked ${param.method.name}($arg): ${param.result} for ${lpparam.packageName}")
+                        Log.i(tag, "hooked ${param.method.name}($arg): ${param.result}")
                     }
                 }
             )
@@ -171,12 +173,12 @@ class Hook : IXposedHookLoadPackage {
         vararg keys: String
     ) {
         val arg = param.args[1] as String
-        XposedBridge.log("$tag: found ${param.method.name} from ${lpparam.packageName} with arg $arg")
+        Log.i(tag, "processing ${param.method.name} from ${lpparam.packageName} with arg $arg")
 
         keys.forEach { key ->
             if (preferences.getBoolean(key, true) && arg == key) {
                 param.result = 0
-                XposedBridge.log("$tag: hooked ${param.method.name}($arg): ${param.result}")
+                Log.i(tag, "hooked ${param.method.name}($arg): ${param.result}")
                 return
             }
         }
